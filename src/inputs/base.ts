@@ -1,10 +1,13 @@
-export abstract class AbstractInput<EventTypes extends string> {
-  private listeners: { [type: string]: readonly Function[] } = {};
+export type InputEventHandler<E> = (event: E) => void;
 
-  protected addEventListener<E>(
-    type: EventTypes,
-    handler: (event: E) => void
-  ): void {
+export abstract class InputEvent {
+  constructor(public readonly type: string) {}
+}
+
+export abstract class AbstractInput<E extends InputEvent> {
+  private listeners: { [type: string]: readonly InputEventHandler<E>[] } = {};
+
+  protected addListener(type: string, handler: InputEventHandler<E>): void {
     if (!this.listeners[type]) {
       this.listeners[type] = [];
     }
@@ -12,23 +15,33 @@ export abstract class AbstractInput<EventTypes extends string> {
     this.listeners[type] = this.listeners[type].concat(handler);
   }
 
-  protected removeEventListener<E>(
-    type: EventTypes,
-    handler: (event: E) => void
-  ): void {
+  protected removeListener(type: string, handler: InputEventHandler<E>): void {
     if (this.listeners[type]) {
-      this.listeners[type] = this.listeners[type].filter((h) => h !== handler);
+      this.listeners[type] = this.listeners[type].filter(
+        (entry: Function) => entry !== handler,
+      );
+
+      if (this.listeners[type].length === 0) {
+        delete this.listeners[type];
+      }
     }
   }
 
-  protected dispatchEvent<E>(type: EventTypes, event: E): void {
-    if (this.listeners[type]) {
-      for (const handler of this.listeners[type]) {
+  protected dispatch(event: E): void {
+    if (this.hasListener(event.type)) {
+      for (const handler of this.listeners[event.type]) {
         handler(event);
       }
     }
   }
 
+  protected hasListener(type: string): boolean {
+    return typeof this.listeners[type] !== undefined;
+  }
+
+  /**
+   * Destroy this input controller, releasing all listeners.
+   */
   public destroy(): void {
     this.listeners = {};
   }
