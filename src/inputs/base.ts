@@ -36,7 +36,7 @@ export abstract class AbstractInput<E extends InputEvent> {
   }
 
   protected hasListener(type: string): boolean {
-    return typeof this.listeners[type] !== undefined;
+    return this.listeners[type] !== undefined;
   }
 
   /**
