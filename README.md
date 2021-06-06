@@ -2,6 +2,12 @@
 
 Input detection components for browser-based game controls.
 
+## Installation
+
+```bash
+$ yarn add @arcade2d/controls
+```
+
 ## Examples
 
 ### Keyboard Input
